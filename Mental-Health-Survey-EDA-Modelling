@@ -1,0 +1,287 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "3ea77e26",
+   "metadata": {
+    "papermill": {
+     "duration": 0.003227,
+     "end_time": "2024-11-14T12:12:02.811807",
+     "exception": false,
+     "start_time": "2024-11-14T12:12:02.808580",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Import modules, building classes and read CSV"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "e007fe9f",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-11-14T12:12:02.819445Z",
+     "iopub.status.busy": "2024-11-14T12:12:02.818730Z",
+     "iopub.status.idle": "2024-11-14T12:12:09.014961Z",
+     "shell.execute_reply": "2024-11-14T12:12:09.014128Z"
+    },
+    "papermill": {
+     "duration": 6.202736,
+     "end_time": "2024-11-14T12:12:09.017404",
+     "exception": false,
+     "start_time": "2024-11-14T12:12:02.814668",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import math, time, warnings\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sns\n",
+    "\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from sklearn.preprocessing import LabelEncoder\n",
+    "from sklearn.linear_model import LogisticRegression, RidgeClassifier, Ridge\n",
+    "from sklearn.naive_bayes import GaussianNB\n",
+    "from sklearn.neighbors import KNeighborsClassifier\n",
+    "from sklearn.tree import DecisionTreeClassifier\n",
+    "from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier, StackingClassifier, ExtraTreesClassifier\n",
+    "from xgboost import XGBClassifier\n",
+    "from catboost import CatBoostClassifier, Pool\n",
+    "from lightgbm import LGBMClassifier\n",
+    "from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score, classification_report, confusion_matrix\n",
+    "from sklearn.impute import SimpleImputer\n",
+    "from sklearn.compose import ColumnTransformer\n",
+    "from sklearn.preprocessing import StandardScaler, OrdinalEncoder, FunctionTransformer\n",
+    "from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score\n",
+    "from sklearn.ensemble import IsolationForest\n",
+    "warnings.filterwarnings('ignore')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "5891fe4a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-14T12:12:09.024407Z",
+     "iopub.status.busy": "2024-11-14T12:12:09.023819Z",
+     "iopub.status.idle": "2024-11-14T12:12:10.060676Z",
+     "shell.execute_reply": "2024-11-14T12:12:10.059773Z"
+    },
+    "papermill": {
+     "duration": 1.0429,
+     "end_time": "2024-11-14T12:12:10.063162",
+     "exception": false,
+     "start_time": "2024-11-14T12:12:09.020262",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "train = pd.read_csv('/kaggle/input/playground-series-s4e11/train.csv')\n",
+    "test = pd.read_csv('/kaggle/input/playground-series-s4e11/test.csv')\n",
+    "original = pd.read_csv('/kaggle/input/depression-surveydataset-for-analysis/final_depression_dataset_1.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "11b97453",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-11-14T12:12:10.070269Z",
+     "iopub.status.busy": "2024-11-14T12:12:10.069891Z",
+     "iopub.status.idle": "2024-11-14T12:12:10.075157Z",
+     "shell.execute_reply": "2024-11-14T12:12:10.074276Z"
+    },
+    "papermill": {
+     "duration": 0.011562,
+     "end_time": "2024-11-14T12:12:10.077714",
+     "exception": false,
+     "start_time": "2024-11-14T12:12:10.066152",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "train shape: (140700, 20)\n",
+      "test shape: (93800, 19)\n",
+      "original shape: (2556, 19)\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(f\"train shape: {train.shape}\")\n",
+    "print(f\"test shape: {test.shape}\")\n",
+    "print(f\"original shape: {original.shape}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f15dcf58",
+   "metadata": {
+    "papermill": {
+     "duration": 0.0027,
+     "end_time": "2024-11-14T12:12:10.083342",
+     "exception": false,
+     "start_time": "2024-11-14T12:12:10.080642",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Dataset Description"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e6ed5beb",
+   "metadata": {
+    "papermill": {
+     "duration": 0.002406,
+     "end_time": "2024-11-14T12:12:10.088385",
+     "exception": false,
+     "start_time": "2024-11-14T12:12:10.085979",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "This dataset contains information on individuals' mental health, work/study life, and demographics. It includes 140,700 entries with 20 columns, detailing various aspects like academic pressure, job satisfaction, dietary habits, and mental health history.\n",
+    "\n",
+    "## **Columns:**\n",
+    "\n",
+    "**id:** Unique identifier for each entry (int).\n",
+    "\n",
+    "**Name:** Name of the individual (string).\n",
+    "\n",
+    "**Gender:** Gender of the individual (string).\n",
+    "\n",
+    "**Age:** Age of the individual (float).\n",
+    "\n",
+    "**City:** City of residence (string).\n",
+    "\n",
+    "**Working Professional or Student:** Indicates if the individual is a working professional or student (string).\n",
+    "\n",
+    "**Profession:** Profession of the individual, where applicable (string, 74% non-null).\n",
+    "\n",
+    "**Academic Pressure:** Academic pressure level (float, 20% non-null).\n",
+    "\n",
+    "**Work Pressure:** Work pressure level (float, 80% non-null).\n",
+    "\n",
+    "**CGPA:** Current Grade Point Average for students (float, 20% non-null).\n",
+    "\n",
+    "**Study Satisfaction:** Satisfaction with studies (float, 20% non-null).\n",
+    "\n",
+    "**Job Satisfaction:** Satisfaction with job (float, 80% non-null).\n",
+    "\n",
+    "**Sleep Duration:** Duration of sleep (string).\n",
+    "\n",
+    "**Dietary Habits:** Dietary habits of the individual (string).\n",
+    "\n",
+    "**Degree:** Degree the individual holds (string).\n",
+    "\n",
+    "**Have you ever had suicidal thoughts?:** Indicates if the individual has experienced suicidal thoughts (string).\n",
+    "\n",
+    "**Work/Study Hours:** Number of hours spent working or studying daily (float).\n",
+    "\n",
+    "**Financial Stress:** Financial stress level (float).\n",
+    "\n",
+    "**Family History of Mental Illness:** Indicates if there is a family history of mental illness (string).\n",
+    "\n",
+    "**Depression:** Indicates presence of depression (int).\n",
+    "\n",
+    "## **Data Summary:**\n",
+    "\n",
+    "\n",
+    "* **Total Entries:** 140,700\n",
+    "* **Total Columns:** 20\n",
+    "* **Memory Usage:** Approximately 21.5 MB\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "95a99f84",
+   "metadata": {
+    "papermill": {
+     "duration": 0.002358,
+     "end_time": "2024-11-14T12:12:10.093377",
+     "exception": false,
+     "start_time": "2024-11-14T12:12:10.091019",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "databundleVersionId": 10008389,
+     "sourceId": 84895,
+     "sourceType": "competition"
+    },
+    {
+     "datasetId": 5868381,
+     "sourceId": 9616093,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30786,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 10.807436,
+   "end_time": "2024-11-14T12:12:10.814903",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-11-14T12:12:00.007467",
+   "version": "2.6.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
